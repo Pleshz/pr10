@@ -19,6 +19,7 @@
 		<title> Авторизация </title>
 		
 		<script src="https://code.jquery.com/jquery-1.8.3.js"></script>
+		<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
@@ -41,6 +42,7 @@
 					<input name="_login" type="text" placeholder="" onkeypress="return PressToEnter(event)"/>
 					<div class = "sub-name">Пароль:</div>
 					<input name="_password" type="password" placeholder="" onkeypress="return PressToEnter(event)"/>
+					<center><div class="g-recaptcha" data-sitekey="6Ld3hVEsAAAAAG9Gj9iAC9jYPyRyIx341N93NXp_"></div></center>
 					
 					<a href="regin.php">Регистрация</a>
 					<br><a href="recovery.php">Забыли пароль?</a>
@@ -63,25 +65,29 @@
 				
 				var _login = document.getElementsByName("_login")[0].value;
 				var _password = document.getElementsByName("_password")[0].value;
+
+				var captcha = grecaptcha.getResponse();
+				if(captcha.length == 0) {
+					alert("Пройди проверку");
+					return;
+				}
+
 				loading.style.display = "block";
 				button.className = "button_diactive";
 				
 				var data = new FormData();
 				data.append("login", _login);
 				data.append("password", _password);
+				data.append('g-recaptcha-response', captcha);
 				
-				// AJAX запрос
 				$.ajax({
 					url         : 'ajax/login_user.php',
-					type        : 'POST', // важно!
+					type        : 'POST', 
 					data        : data,
 					cache       : false,
 					dataType    : 'html',
-					// отключаем обработку передаваемых данных, пусть передаются как есть
 					processData : false,
-					// отключаем установку заголовка типа запроса. Так jQuery скажет серверу что это строковой запрос
 					contentType : false, 
-					// функция успешного ответа сервера
 					success: function (_data) {
 						console.log("Авторизация прошла успешно, id: " +_data);
 						if(_data == "") {
@@ -95,7 +101,6 @@
 							button.className = "button";
 						}
 					},
-					// функция ошибки
 					error: function( ){
 						console.log('Системная ошибка!');
 						loading.style.display = "none";

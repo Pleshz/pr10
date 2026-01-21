@@ -29,7 +29,7 @@
 			$user_new = $query_user->fetch_row();
 			$id = $user_new[0];
 
-			if($id != -1) $_SESSION['user'] = $id; // запоминаем пользователя
+			if($id != -1) $_SESSION['user'] = $id; 
 			echo $id;
 		} else {
 			echo "Пользователь не распознан";

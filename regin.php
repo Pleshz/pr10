@@ -78,17 +78,15 @@
 					return
 				};
 				
-				if(_password == _passwordCopy) {
+				if(_password != _passwordCopy) {
 					alert("Пароли не совпадают");
 					return;
 				}
 
 				var captcha = grecaptcha.getResponse();
-				if(captcha.length) {
-					let Data = new FormData();
-					Data.append('g-recaptcha-response', captcha);
-
-					Ajax("url", Data, SignIn);
+				if(captcha.length == 0) {
+					alert("Пройди проверку");
+					return;
 				}
 				
 				loading.style.display = "block";
@@ -97,6 +95,7 @@
 				var data = new FormData();
 				data.append("login", _login);
 				data.append("password", _password);
+				data.append('g-recaptcha-response', captcha);
 				
 				$.ajax({
 					url         : 'ajax/regin_user.php',

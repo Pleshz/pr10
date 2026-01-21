@@ -19,6 +19,7 @@
 		<title> Регистрация </title>
 		
 		<script src="https://code.jquery.com/jquery-1.8.3.js"></script>
+		<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
@@ -43,6 +44,7 @@
 					<input name="_password" type="password" placeholder="" onkeypress="return PressToEnter(event)"/>
 					<div class = "sub-name">Повторите пароль:</div>
 					<input name="_passwordCopy" type="password" placeholder="" onkeypress="return PressToEnter(event)"/>
+					<center><div class="g-recaptcha" data-sitekey="6Ld3hVEsAAAAAG9Gj9iAC9jYPyRyIx341N93NXp_"></div></center>
 					
 					<a href="login.php">Вернуться</a>
 					<input type="button" class="button" value="Зайти" onclick="RegIn()" style="margin-top: 0px;"/>
@@ -65,51 +67,63 @@
 				var _login = document.getElementsByName("_login")[0].value;
 				var _password = document.getElementsByName("_password")[0].value;
 				var _passwordCopy = document.getElementsByName("_passwordCopy")[0].value;
+
+				if(_login == "") {
+					alert("Введите логин");
+					return;
+				}
+
+				if(_password == "") {
+					alert("Введите пароль");
+					return
+				};
 				
-				if(_login != "") {
-					if(_password != "") {
-						if(_password == _passwordCopy) {
-							loading.style.display = "block";
-							button.className = "button_diactive";
-							
-							var data = new FormData();
-							data.append("login", _login);
-							data.append("password", _password);
-							
-							// AJAX запрос
-							$.ajax({
-								url         : 'ajax/regin_user.php',
-								type        : 'POST', // важно!
-								data        : data,
-								cache       : false,
-								dataType    : 'html',
-								// отключаем обработку передаваемых данных, пусть передаются как есть
-								processData : false,
-								// отключаем установку заголовка типа запроса. Так jQuery скажет серверу что это строковой запрос
-								contentType : false, 
-								// функция успешного ответа сервера
-								success: function (_data) {
-									console.log("Авторизация прошла успешно, id: " +_data);
-									if(_data == -1) {
-										alert("Пользователь с таким логином существует.");
-										loading.style.display = "none";
-										button.className = "button";
-									} else {
-										location.reload();
-										loading.style.display = "none";
-										button.className = "button";
-									}
-								},
-								// функция ошибки
-								error: function( ){
-									console.log('Системная ошибка!');
-									loading.style.display = "none";
-									button.className = "button";
-								}
-							});
-						} else alert("Пароли не совподают.");
-					} else alert("Введите пароль.");
-				} else alert("Введите логин.");
+				if(_password == _passwordCopy) {
+					alert("Пароли не совпадают");
+					return;
+				}
+
+				var captcha = grecaptcha.getResponse();
+				if(captcha.length) {
+					let Data = new FormData();
+					Data.append('g-recaptcha-response', captcha);
+
+					Ajax("url", Data, SignIn);
+				}
+				
+				loading.style.display = "block";
+				button.className = "button_diactive";
+				
+				var data = new FormData();
+				data.append("login", _login);
+				data.append("password", _password);
+				
+				$.ajax({
+					url         : 'ajax/regin_user.php',
+					type        : 'POST', 
+					data        : data,
+					cache       : false,
+					dataType    : 'html',
+					processData : false,
+					contentType : false, 
+					success: function (_data) {
+						console.log("Авторизация прошла успешно, id: " +_data);
+						if(_data == -1) {
+							alert("Пользователь с таким логином существует.");
+							loading.style.display = "none";
+							button.className = "button";
+						} else {
+							location.reload();
+							loading.style.display = "none";
+							button.className = "button";
+						}
+					},
+					error: function( ){
+						console.log('Системная ошибка!');
+						loading.style.display = "none";
+						button.className = "button";
+					}
+				});
 			}
 			
 			function PressToEnter(e) {
